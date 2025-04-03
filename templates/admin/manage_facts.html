@@ -1,0 +1,38 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Manage Facts</h2>
+
+    <!-- Add Fact Button -->
+    <a href="{{ url_for('add_fact') }}" class="btn btn-success mb-3">Add New Fact</a>
+
+    <!-- Facts Table -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fact in facts %}
+            <tr>
+                <td>{{ fact.title }}</td>
+                <td>{{ fact.description[:100] }}...</td>
+                <td>
+                    <!-- Edit Fact Button -->
+                    <a href="{{ url_for('edit_fact', id=fact.id) }}" class="btn btn-warning btn-sm">Edit</a>
+
+                    <!-- Delete Fact Form -->
+                    <form action="{{ url_for('delete_fact', id=fact.id) }}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

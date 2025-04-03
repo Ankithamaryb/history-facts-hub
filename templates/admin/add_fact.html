@@ -1,0 +1,21 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Add a New Fact</h2>
+    <form method="POST" action="{{ url_for('add_fact') }}">
+        {{ csrf_token }}  {# Include this if using Flask-WTF #}
+
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Fact</button>
+        <a href="{{ url_for('manage_facts') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
