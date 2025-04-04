@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Information</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" name="title" value="{{ info.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">details</label>
+            <textarea class="form-control" name="details" required>{{ info.details }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-warning">Update</button>
+    </form>
+</div>
+{% endblock %}

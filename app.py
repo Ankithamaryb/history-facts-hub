@@ -30,6 +30,12 @@ class Fact(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
+class Information(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    details = db.Column(db.Text, nullable=False)  # Ensure it's 'details', not 'content'
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -102,7 +108,8 @@ def quiz():
 @app.route('/information')
 @login_required
 def information():
-    return render_template('information.html')
+    all_info = Information.query.all()  # Fetch all information from the database
+    return render_template('information.html', information=all_info)  
 
 @app.route('/feedback')
 @login_required
@@ -135,15 +142,32 @@ def add_fact():
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('admin_dashboard'))
+
     if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
+        print("Form Data Received:", request.form)  # Debugging
+
+        title = request.form.get('title')
+        description = request.form.get('description')
+
+        if not title or not description:
+            flash("Title and Description are required!", "danger")
+            return redirect(url_for('add_fact'))
+
         new_fact = Fact(title=title, description=description)
         db.session.add(new_fact)
-        db.session.commit()
-        flash("Fact added successfully!", "success")
-        return redirect(url_for('manage_facts'))
+
+        try:
+            db.session.commit()
+            flash("Fact added successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error adding fact: " + str(e), "danger")
+            return redirect(url_for('add_fact'))
+
+        return redirect(url_for('manage_facts'))  # ✅ Redirect admin properly
+
     return render_template('admin/add_fact.html')
+
 
 @app.route('/admin/edit_fact/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -160,6 +184,7 @@ def edit_fact(id):
         return redirect(url_for('manage_facts'))
     return render_template('admin/edit_fact.html', fact=fact)
 
+
 @app.route('/admin/delete_fact/<int:id>', methods=['POST'])
 @login_required
 def delete_fact(id):
@@ -172,14 +197,70 @@ def delete_fact(id):
     flash("Fact deleted successfully!", "danger")
     return redirect(url_for('manage_facts'))
 
+
 @app.route('/admin/manage_information')
 @login_required
 def manage_information():
+    information_list = Information.query.with_entities(
+        Information.id, Information.title, Information.details
+    ).all()
+    return render_template('manage_information.html', information=information_list)  # ✅ Correct variable
+
+
+@app.route('/admin/add_information', methods=['GET', 'POST'])
+@login_required
+def add_information():
+    if current_user.role != 'admin':  # Only admins can add
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('manage_information'))
+
+    if request.method == 'POST':
+        title = request.form.get('title')  # Extract title
+        details = request.form.get('details')  # Extract details
+        
+        if not title or not details:  # Ensure both fields exist
+            flash("Title and Details are required!", "danger")
+            return redirect(url_for('add_information'))
+        
+        new_info = Information(title=title, details=details)
+        db.session.add(new_info)
+        db.session.commit()
+        flash("Information added successfully!", "success")
+        return redirect(url_for('manage_information'))
+
+    return render_template('admin/add_information.html')
+
+
+@app.route('/admin/edit_information/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_information(id):
+    info = Information.query.get_or_404(id)  # ✅ Fetches info based on ID
+    
+    if request.method == 'POST':
+        info.title = request.form['title']
+        info.details = request.form['details']  
+        db.session.commit()
+        flash('Information updated successfully!', 'success')
+        return redirect(url_for('manage_information'))  
+
+    return render_template('edit_information.html', info=info)  # ✅ Pass "info" correctly
+
+
+
+@app.route('/admin/delete_information/<int:id>', methods=['POST'])
+@login_required
+def delete_information(id):
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('admin_dashboard'))
+
+    info = Information.query.get_or_404(id)
+    db.session.delete(info)
+    db.session.commit()
+    flash("Information deleted successfully!", "danger")
+    return redirect(url_for('manage_information'))
+
     
-    return render_template('manage_information.html')
 @app.route('/admin/manage_quiz')
 @login_required
 def manage_quiz():

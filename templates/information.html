@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Historical Information</h2>
+    <div class="row">
+        {% if information %}
+            {% for info in information %}
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ info.title }}</h5>
+                        <p class="card-text">{{ info.details }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center">No historical information available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

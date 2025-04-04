@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Manage Information</h2>
+    <a href="{{ url_for('add_information') }}" class="btn btn-primary mb-3">Add New Information</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>details</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for info in information %}
+            <tr>
+                <td>{{ info.title }}</td>
+                <td>{{ info.details }}</td>
+                <td>
+                    <a href="{{ url_for('edit_information', id=info.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <form action="{{ url_for('delete_information', id=info.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
