@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Quiz Result</h2>
+    <p class="text-center">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
+    <div class="text-center">
+        <a href="{{ url_for('quiz') }}" class="btn btn-primary">Retake Quiz</a>
+    </div>
+</div>
+{% endblock %}

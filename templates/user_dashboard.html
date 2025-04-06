@@ -1,4 +1,4 @@
-{% extends "base.html" %}  <!-- Ensure this extends your main template -->
+{% extends "base.html" %}
 
 {% block content %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -26,8 +26,8 @@
         <li><a href="{{ url_for('feedback') }}">Feedback</a></li>
     </ul>
 
-    
-    <div class="row">
+  
+<div class="row">
         {% for fact in facts %}
         <div class="col-md-4">
             <div class="card mb-3">

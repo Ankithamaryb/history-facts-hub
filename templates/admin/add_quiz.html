@@ -1,0 +1,30 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add Quiz Question</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Question</label>
+            <input type="text" name="question" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Option 1</label>
+            <input type="text" name="option1" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Option 2</label>
+            <input type="text" name="option2" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Option 3</label>
+            <input type="text" name="option3" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Answer</label>
+            <input type="text" name="answer" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Add</button>
+    </form>
+</div>
+{% endblock %}

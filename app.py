@@ -1,3 +1,4 @@
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -33,7 +34,16 @@ class Fact(db.Model):
 class Information(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    details = db.Column(db.Text, nullable=False)  # Ensure it's 'details', not 'content'
+    details = db.Column(db.Text, nullable=False) 
+
+class Quiz(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(500), nullable=False)
+    option1 = db.Column(db.String(200), nullable=False)
+    option2 = db.Column(db.String(200), nullable=False)
+    option3 = db.Column(db.String(200), nullable=False)
+    answer = db.Column(db.String(200), nullable=False)
+
 
 
 @login_manager.user_loader
@@ -100,16 +110,71 @@ def facts():
     all_facts = Fact.query.all()  # Ensure this retrieves a list of Fact objects
     return render_template('facts.html', facts=all_facts)
 
-@app.route('/quiz')
-@login_required
-def quiz():
-    return render_template('quiz.html')
+from sqlalchemy import or_
 
-@app.route('/information')
+@app.route('/information', methods=['GET'])
 @login_required
 def information():
-    all_info = Information.query.all()  # Fetch all information from the database
-    return render_template('information.html', information=all_info)  
+    query = request.args.get('query')
+    results = []
+
+    if query:
+        results = Information.query.filter(Information.title.ilike(f'%{query}%')).all()
+        if not results:
+            flash("No information found for your search.", "warning")
+
+    return render_template('information.html', results=results, query=query)
+
+@app.route('/quiz', methods=['GET', 'POST'])
+@login_required
+def quiz():
+    if request.method == 'POST':
+        answers = request.form
+        score = 0
+        conn = sqlite3.connect('instance/historical_facts.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, answer FROM quiz")
+        correct_answers = {str(row[0]): row[1] for row in cursor.fetchall()}
+        conn.close()
+
+        for q_id, selected_option in answers.items():
+            if q_id in correct_answers and selected_option == correct_answers[q_id]:
+                score += 1
+
+        return render_template('user/quiz_result.html', score=score, total=len(answers))
+
+    show_questions = request.args.get('start') == 'true'
+    questions = []
+    if show_questions:
+        conn = sqlite3.connect('instance/historical_facts.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM quiz")
+        questions = cursor.fetchall()
+        conn.close()
+
+    return render_template('quiz.html', show_questions=show_questions, questions=questions)
+
+
+@app.route('/user/submit_quiz', methods=['POST'])
+@login_required
+def submit_quiz():
+    conn = sqlite3.connect('instance/historical_facts.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM quiz")
+    questions = cursor.fetchall()
+    conn.close()
+
+    score = 0
+    total = len(questions)
+
+    for q in questions:
+        user_answer = request.form.get(f'q{q["id"]}')
+        if user_answer == q["answer"]:  # assumes you have a column named 'answer'
+            score += 1
+
+    return render_template('user/quiz_result.html', score=score, total=total)
 
 @app.route('/feedback')
 @login_required
@@ -260,15 +325,100 @@ def delete_information(id):
     flash("Information deleted successfully!", "danger")
     return redirect(url_for('manage_information'))
 
-    
-@app.route('/admin/manage_quiz')
+@app.route('/user/add_fact', methods=['GET', 'POST'])
+@login_required
+def user_add_fact():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+
+        if not title or not description:
+            flash("Title and Description are required!", "danger")
+            return redirect(url_for('user_add_fact'))
+
+        # Add the new fact
+        new_fact = Fact(title=title, description=description)
+        db.session.add(new_fact)
+        try:
+            db.session.commit()
+            flash("Fact submitted successfully!", "success")
+        except:
+            db.session.rollback()
+            flash("Something went wrong. Try again.", "danger")
+
+        return redirect(url_for('facts'))
+
+    return render_template('user/add_fact.html')
+
+
+@app.route('/admin/manage_quiz', methods=['GET', 'POST'])
 @login_required
 def manage_quiz():
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('admin_dashboard'))
-    
-    return render_template('manage_quiz.html')
+
+    questions = Quiz.query.all()
+    return render_template('admin/manage_quiz.html', questions=questions)
+
+@app.route('/admin/add_quiz', methods=['GET', 'POST'])
+@login_required
+def add_quiz():
+    if current_user.role != 'admin':
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('admin_dashboard'))
+
+    if request.method == 'POST':
+        question = request.form['question']  
+        option1 = request.form['option1']
+        option2 = request.form['option2']
+        option3 = request.form['option3']
+        answer = request.form['answer']
+
+        new_question = Quiz(question=question, option1=option1, option2=option2, option3=option3, answer=answer)
+        db.session.add(new_question)
+        db.session.commit()
+        flash("Question added!", "success")
+        return redirect(url_for('manage_quiz'))
+
+    return render_template('admin/add_quiz.html') 
+
+
+@app.route('/admin/edit_quiz/<int:quiz_id>', methods=['GET', 'POST'])
+@login_required
+def edit_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if current_user.role != 'admin':
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('admin_dashboard'))
+
+    if request.method == 'POST':
+        quiz.question = request.form['question']
+        quiz.option1 = request.form['option1']
+        quiz.option2 = request.form['option2']
+        quiz.option3 = request.form['option3']
+        quiz.answer = request.form['answer']
+
+        db.session.commit()
+        flash("Quiz question updated!", "success")
+        return redirect(url_for('manage_quiz'))
+
+    return render_template('admin/edit_quiz.html', quiz=quiz)
+
+@app.route('/admin/delete_quiz/<int:quiz_id>')
+@login_required
+def delete_quiz(quiz_id):
+    if current_user.role != 'admin':
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('admin_dashboard'))
+
+    quiz = Quiz.query.get_or_404(quiz_id)
+    db.session.delete(quiz)
+    db.session.commit()
+    flash("Question deleted successfully!", "success")
+    return redirect(url_for('manage_quiz'))
+
+
 
 @app.route('/admin/manage_feedback')
 @login_required

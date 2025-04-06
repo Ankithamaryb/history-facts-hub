@@ -1,23 +1,27 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center">Historical Information</h2>
-    <div class="row">
-        {% if information %}
-            {% for info in information %}
-            <div class="col-md-6">
-                <div class="card mb-3">
+    <h2 class="text-center">Search Information</h2>
+
+    <form method="GET" action="{{ url_for('information') }}">
+        <div class="input-group mb-3">
+            <input type="text" name="query" class="form-control" placeholder="Search by title..." value="{{ query or '' }}" required>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+    {% if query %}
+        {% if results %}
+            <h4 class="mt-4">Search Results:</h4>
+            {% for info in results %}
+                <div class="card my-3">
                     <div class="card-body">
                         <h5 class="card-title">{{ info.title }}</h5>
                         <p class="card-text">{{ info.details }}</p>
                     </div>
                 </div>
-            </div>
             {% endfor %}
-        {% else %}
-            <p class="text-center">No historical information available.</p>
         {% endif %}
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
