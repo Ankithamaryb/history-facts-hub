@@ -176,10 +176,6 @@ def submit_quiz():
 
     return render_template('user/quiz_result.html', score=score, total=total)
 
-@app.route('/feedback')
-@login_required
-def feedback():
-    return render_template('feedback.html')
 
 # Admin Dashboard
 @app.route('/admin_dashboard')
@@ -218,20 +214,28 @@ def add_fact():
             flash("Title and Description are required!", "danger")
             return redirect(url_for('add_fact'))
 
+        # ✅ Check if the fact already exists
+        existing_fact = Fact.query.filter(db.func.lower(Fact.title) == title.lower()).first()
+        if existing_fact:
+            flash("❌ This fact already exists!", "danger")
+            return redirect(url_for('add_fact'))
+
+        # Create and add the new fact
         new_fact = Fact(title=title, description=description)
         db.session.add(new_fact)
 
         try:
             db.session.commit()
-            flash("Fact added successfully!", "success")
+            flash("✅ Fact added successfully!", "success")
         except Exception as e:
             db.session.rollback()
-            flash("Error adding fact: " + str(e), "danger")
+            flash("⚠️ Error adding fact: " + str(e), "danger")
             return redirect(url_for('add_fact'))
 
-        return redirect(url_for('manage_facts'))  # ✅ Redirect admin properly
+        return redirect(url_for('manage_facts'))
 
     return render_template('admin/add_fact.html')
+
 
 
 @app.route('/admin/edit_fact/<int:id>', methods=['GET', 'POST'])
@@ -269,26 +273,38 @@ def manage_information():
     information_list = Information.query.with_entities(
         Information.id, Information.title, Information.details
     ).all()
-    return render_template('manage_information.html', information=information_list)  # ✅ Correct variable
+    return render_template('admin/manage_information.html', information=information_list)  # ✅ Correct variable
+
 
 
 @app.route('/admin/add_information', methods=['GET', 'POST'])
 @login_required
 def add_information():
-    if current_user.role != 'admin':  # Only admins can add
+    if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('manage_information'))
 
     if request.method == 'POST':
-        title = request.form.get('title')  # Extract title
-        details = request.form.get('details')  # Extract details
-        
-        if not title or not details:  # Ensure both fields exist
-            flash("Title and Details are required!", "danger")
-            return redirect(url_for('add_information'))
-        
-        new_info = Information(title=title, details=details)
-        db.session.add(new_info)
+        # Step 1: Get and normalize user input
+        new_title = request.form.get('title', '').strip().lower()
+        new_details = request.form.get('details', '').strip().lower()
+
+        # Step 2: Get all existing information from DB
+        all_info = Information.query.all()
+
+        # Step 3: Compare with each entry (case-insensitive)
+        for info in all_info:
+            existing_title = info.title.strip().lower()
+            existing_details = info.details.strip().lower()
+
+            if new_title == existing_title and new_details == existing_details:
+                flash("This information already exists!", "warning")
+                return redirect(url_for('add_information'))
+
+        # Step 4: Add info if not duplicate
+        info = Information(title=request.form.get('title').strip(), 
+                           details=request.form.get('details').strip())
+        db.session.add(info)
         db.session.commit()
         flash("Information added successfully!", "success")
         return redirect(url_for('manage_information'))
@@ -369,20 +385,36 @@ def add_quiz():
         return redirect(url_for('admin_dashboard'))
 
     if request.method == 'POST':
-        question = request.form['question']  
-        option1 = request.form['option1']
-        option2 = request.form['option2']
-        option3 = request.form['option3']
-        answer = request.form['answer']
+        question = request.form['question'].strip()
+        option1 = request.form['option1'].strip()
+        option2 = request.form['option2'].strip()
+        option3 = request.form['option3'].strip()
+        answer = request.form['answer'].strip()
 
-        new_question = Quiz(question=question, option1=option1, option2=option2, option3=option3, answer=answer)
+        # Normalize the question for duplicate check
+        normalized_question = question.lower()
+
+        # Check for duplicate question
+        existing_questions = Quiz.query.all()
+        for q in existing_questions:
+            if q.question.strip().lower() == normalized_question:
+                flash("This question already exists!", "warning")
+                return redirect(url_for('add_quiz'))
+
+        # If not duplicate, add to database
+        new_question = Quiz(
+            question=question,
+            option1=option1,
+            option2=option2,
+            option3=option3,
+            answer=answer
+        )
         db.session.add(new_question)
         db.session.commit()
         flash("Question added!", "success")
         return redirect(url_for('manage_quiz'))
 
-    return render_template('admin/add_quiz.html') 
-
+    return render_template('admin/add_quiz.html')
 
 @app.route('/admin/edit_quiz/<int:quiz_id>', methods=['GET', 'POST'])
 @login_required
@@ -419,15 +451,6 @@ def delete_quiz(quiz_id):
     return redirect(url_for('manage_quiz'))
 
 
-
-@app.route('/admin/manage_feedback')
-@login_required
-def manage_feedback():
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('admin_dashboard'))
-    
-    return render_template('manage_feedback.html')
 
 
 

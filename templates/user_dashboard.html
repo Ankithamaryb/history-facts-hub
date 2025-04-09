@@ -1,21 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="#">Historical Facts Hub</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('facts') }}">Facts</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('information') }}">Information</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('feedback') }}">Feedback</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
 <div class="container mt-4">
     <h1>Welcome, {{ username }}</h1>
     <p>Select a section to explore:</p>
@@ -23,11 +8,10 @@
         <li><a href="{{ url_for('facts') }}">Facts</a></li>
         <li><a href="{{ url_for('information') }}">Information</a></li>
         <li><a href="{{ url_for('quiz') }}">Quiz</a></li>
-        <li><a href="{{ url_for('feedback') }}">Feedback</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
     </ul>
 
-  
-<div class="row">
+    <div class="row mt-4">
         {% for fact in facts %}
         <div class="col-md-4">
             <div class="card mb-3">
