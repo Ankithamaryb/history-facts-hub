@@ -1,23 +1,32 @@
 pipeline {
     agent any
 
-    stages {
+    stages {  // 
+
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
+                git branch: 'main', url: 'https://github.com/Ankithamaryb/flask-docker-demo.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install Dependencies') {
             steps {
-                sh 'docker build -t history-facts-app .'
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
+                '''
             }
         }
 
-        stage('Run Flask Container') {
+        stage('Run Flask App') {
             steps {
-                sh 'docker run -d -p 5000:5000 history-facts-app'
+                sh '''
+                    . venv/bin/activate
+                    nohup python app.py &
+                '''
             }
         }
-    }
+
+    } // 
 }
