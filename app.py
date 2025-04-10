@@ -129,20 +129,25 @@ def information():
 @login_required
 def quiz():
     if request.method == 'POST':
+        # Collect submitted answers
         answers = request.form
         score = 0
+
+        # Fetch correct answers from DB
         conn = sqlite3.connect('instance/historical_facts.db')
         cursor = conn.cursor()
         cursor.execute("SELECT id, answer FROM quiz")
         correct_answers = {str(row[0]): row[1] for row in cursor.fetchall()}
         conn.close()
 
+        # Compare submitted answers with correct ones
         for q_id, selected_option in answers.items():
-            if q_id in correct_answers and selected_option == correct_answers[q_id]:
+            if q_id in correct_answers and selected_option.strip().lower() == correct_answers[q_id].strip().lower():
                 score += 1
 
-        return render_template('user/quiz_result.html', score=score, total=len(answers))
+        return render_template('user/quiz_result.html', score=score, total=len(correct_answers))
 
+    # Load quiz questions if URL contains ?start=true
     show_questions = request.args.get('start') == 'true'
     questions = []
     if show_questions:
@@ -155,6 +160,7 @@ def quiz():
 
     return render_template('quiz.html', show_questions=show_questions, questions=questions)
 
+    
 
 @app.route('/user/submit_quiz', methods=['POST'])
 @login_required
