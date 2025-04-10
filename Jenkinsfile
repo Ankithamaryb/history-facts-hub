@@ -2,27 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repo') {
+        stage('Checkout Code') {
             steps {
-                git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
+                git branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t historical-facts-hub .'
+                sh 'docker build -t history-facts-app .'
             }
         }
 
-        stage('Run Flask App') {
+        stage('Run Flask Container') {
             steps {
-                sh '''
-                    docker rm -f flask-app || true
-                    docker run -d --name flask-app \
-                      --network flask-net \
-                      -p 5000:5000 \
-                      historical-facts-hub
-                '''
+                sh 'docker run -d -p 5000:5000 history-facts-app'
             }
         }
     }
