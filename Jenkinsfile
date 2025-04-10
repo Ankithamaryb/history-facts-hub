@@ -1,12 +1,12 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git credentialsId: 'github-token', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
-            }
-        }
+    stage('Clone Repo') {
+    steps {
+        git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
