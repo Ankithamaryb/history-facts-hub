@@ -1,12 +1,12 @@
 pipeline {
     agent any
 
-    stage('Clone Repo') {
-    steps {
-        git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
-    }
-}
-
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -18,7 +18,10 @@ pipeline {
             steps {
                 sh '''
                     docker rm -f flask-app || true
-                    docker run -d --name flask-app --network flask-net -p 5000:5000 historical-facts-hub
+                    docker run -d --name flask-app \
+                      --network flask-net \
+                      -p 5000:5000 \
+                      historical-facts-hub
                 '''
             }
         }
