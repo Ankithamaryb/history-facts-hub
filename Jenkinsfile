@@ -1,15 +1,14 @@
 pipeline {
     agent any
 
-    stages {  // 
-
+    stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'github-token', branch: 'main', url: 'https://github.com/Ankithamaryb/history-facts-hub.git'
+                git url: 'https://github.com/Ankithamaryb/history-facts-hub.git', branch: 'main', credentialsId: 'github-token'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t historical-facts-hub .'
             }
@@ -17,15 +16,8 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh '''
-                    docker rm -f flask-app || true
-                    docker run -d --name flask-app \
-                      --network flask-net \
-                      -p 5000:5000 \
-                      historical-facts-hub
-                '''
+                sh 'docker run -d -p 5000:5000 --name historical-facts-hub historical-facts-hub'
             }
         }
-
-    } // 
+    }
 }
