@@ -1,3 +1,4 @@
-flask
-flask_sqlalchemy
-flask_bcrypt
+Flask
+Flask_SQLAlchemy
+Flask_Bcrypt
+Flask_Login
