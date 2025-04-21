@@ -23,9 +23,9 @@ pipeline {
         stage('Install Selenium Requirements') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/Scripts/activate
-                    pip install -r requirements.txt
+                    python -m venv venv
+                    venv\\Scripts\\python -m pip install --upgrade pip
+                    venv\\Scripts\\python -m pip install -r requirements.txt
                 '''
             }
         }
@@ -35,7 +35,7 @@ pipeline {
                 script {
                     // Ensure Jenkins is running in the correct directory
                     dir('historicalfactshub') {
-                        sh 'venv\\Scripts\\activate && python -m unittest discover -s automation'
+                        sh 'venv\\Scripts\\python -m unittest discover -s automation'
                     }
                 }
             }
