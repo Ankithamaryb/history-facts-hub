@@ -25,7 +25,7 @@ pipeline {
         sh '''
             python3 -m venv venv
             . venv/bin/activate
-            pip install -r automation/requirements.txt
+            pip install -r historicalfactshub/requirements.txt
         '''
     }
 }
