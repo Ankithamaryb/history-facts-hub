@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        // Add the Python3 path from WindowsApps to PATH
+        PATH = "C:/Users/spank/AppData/Local/Microsoft/WindowsApps:$PATH"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -23,8 +28,8 @@ pipeline {
         stage('Install Selenium Requirements') {
             steps {
                 sh '''
-                    python -m pip install --upgrade pip
-                    python -m pip install -r requirements.txt
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install -r requirements.txt
                 '''
             }
         }
@@ -34,7 +39,7 @@ pipeline {
                 script {
                     // Ensure Jenkins is running in the correct directory
                     dir('historicalfactshub') {
-                        sh 'python -m unittest discover -s automation'
+                        sh 'python3 -m unittest discover -s automation'
                     }
                 }
             }
