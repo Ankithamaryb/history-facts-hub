@@ -23,7 +23,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # 'user' or 'admin'
+    role = db.Column(db.String(50), nullable=False)  
 
 # Facts Model
 class Fact(db.Model):
@@ -107,7 +107,7 @@ def user_dashboard():
 @app.route('/facts')
 @login_required
 def facts():
-    all_facts = Fact.query.all()  # Ensure this retrieves a list of Fact objects
+    all_facts = Fact.query.all() 
     return render_template('facts.html', facts=all_facts)
 
 from sqlalchemy import or_
@@ -129,25 +129,24 @@ def information():
 @login_required
 def quiz():
     if request.method == 'POST':
-        # Collect submitted answers
+       
         answers = request.form
         score = 0
 
-        # Fetch correct answers from DB
+       
         conn = sqlite3.connect('instance/historical_facts.db')
         cursor = conn.cursor()
         cursor.execute("SELECT id, answer FROM quiz")
         correct_answers = {str(row[0]): row[1] for row in cursor.fetchall()}
         conn.close()
 
-        # Compare submitted answers with correct ones
         for q_id, selected_option in answers.items():
             if q_id in correct_answers and selected_option.strip().lower() == correct_answers[q_id].strip().lower():
                 score += 1
 
         return render_template('user/quiz_result.html', score=score, total=len(correct_answers))
 
-    # Load quiz questions if URL contains ?start=true
+    
     show_questions = request.args.get('start') == 'true'
     questions = []
     if show_questions:
@@ -177,7 +176,7 @@ def submit_quiz():
 
     for q in questions:
         user_answer = request.form.get(f'q{q["id"]}')
-        if user_answer == q["answer"]:  # assumes you have a column named 'answer'
+        if user_answer == q["answer"]: 
             score += 1
 
     return render_template('user/quiz_result.html', score=score, total=total)
@@ -211,7 +210,7 @@ def add_fact():
         return redirect(url_for('admin_dashboard'))
 
     if request.method == 'POST':
-        print("Form Data Received:", request.form)  # Debugging
+        print("Form Data Received:", request.form)
 
         title = request.form.get('title')
         description = request.form.get('description')
@@ -220,7 +219,7 @@ def add_fact():
             flash("Title and Description are required!", "danger")
             return redirect(url_for('add_fact'))
 
-        # ✅ Check if the fact already exists
+    
         existing_fact = Fact.query.filter(db.func.lower(Fact.title) == title.lower()).first()
         if existing_fact:
             flash("❌ This fact already exists!", "danger")
@@ -279,7 +278,7 @@ def manage_information():
     information_list = Information.query.with_entities(
         Information.id, Information.title, Information.details
     ).all()
-    return render_template('admin/manage_information.html', information=information_list)  # ✅ Correct variable
+    return render_template('admin/manage_information.html', information=information_list)  
 
 
 
@@ -291,14 +290,14 @@ def add_information():
         return redirect(url_for('manage_information'))
 
     if request.method == 'POST':
-        # Step 1: Get and normalize user input
+        
         new_title = request.form.get('title', '').strip().lower()
         new_details = request.form.get('details', '').strip().lower()
 
-        # Step 2: Get all existing information from DB
+        
         all_info = Information.query.all()
 
-        # Step 3: Compare with each entry (case-insensitive)
+        
         for info in all_info:
             existing_title = info.title.strip().lower()
             existing_details = info.details.strip().lower()
@@ -307,7 +306,7 @@ def add_information():
                 flash("This information already exists!", "warning")
                 return redirect(url_for('add_information'))
 
-        # Step 4: Add info if not duplicate
+        
         info = Information(title=request.form.get('title').strip(), 
                            details=request.form.get('details').strip())
         db.session.add(info)
@@ -321,7 +320,7 @@ def add_information():
 @app.route('/admin/edit_information/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_information(id):
-    info = Information.query.get_or_404(id)  # ✅ Fetches info based on ID
+    info = Information.query.get_or_404(id)  
     
     if request.method == 'POST':
         info.title = request.form['title']
@@ -330,7 +329,7 @@ def edit_information(id):
         flash('Information updated successfully!', 'success')
         return redirect(url_for('manage_information'))  
 
-    return render_template('edit_information.html', info=info)  # ✅ Pass "info" correctly
+    return render_template('edit_information.html', info=info)  
 
 
 
@@ -397,17 +396,17 @@ def add_quiz():
         option3 = request.form['option3'].strip()
         answer = request.form['answer'].strip()
 
-        # Normalize the question for duplicate check
+        
         normalized_question = question.lower()
 
-        # Check for duplicate question
+        
         existing_questions = Quiz.query.all()
         for q in existing_questions:
             if q.question.strip().lower() == normalized_question:
                 flash("This question already exists!", "warning")
                 return redirect(url_for('add_quiz'))
 
-        # If not duplicate, add to database
+        
         new_question = Quiz(
             question=question,
             option1=option1,
