@@ -24,7 +24,7 @@ pipeline {
             steps {
                 sh '''
                     python3 -m venv venv
-                    . venv/bin/activate
+                    . venv/Scripts/activate
                     pip install -r requirements.txt
                 '''
             }
@@ -33,8 +33,10 @@ pipeline {
         stage('Run Selenium Tests') {
             steps {
                 script {
-                    // Activate the virtual environment and run tests from the 'automation' folder
-                    sh 'bash -c "source venv/bin/activate && python -m unittest discover -s automation"'
+                    // Ensure Jenkins is running in the correct directory
+                    dir('historicalfactshub') {
+                        sh 'venv\\Scripts\\activate && python -m unittest discover -s automation'
+                    }
                 }
             }
         }
