@@ -31,14 +31,14 @@ pipeline {
 }
 
 
+        stages {
         stage('Run Selenium Tests') {
             steps {
-                sh '''
-                source venv/bin/activate
-                pytest Automation/ --html=report.html
-                '''
+                script {
+                    // Activate the virtual environment with bash
+                    sh 'bash -c "source venv/bin/activate && python -m unittest discover -s tests"'
+                }
             }
-        }
 
         stage('Publish Selenium Report') {
             steps {
