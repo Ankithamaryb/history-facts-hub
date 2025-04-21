@@ -33,8 +33,8 @@ pipeline {
         stage('Run Selenium Tests') {
             steps {
                 script {
-                    // Activate the virtual environment with bash
-                    sh 'bash -c "source venv/bin/activate && python -m unittest discover -s tests"'
+                    // Activate the virtual environment and run tests from the 'automation' folder
+                    sh 'bash -c "source venv/bin/activate && python -m unittest discover -s automation"'
                 }
             }
         }
