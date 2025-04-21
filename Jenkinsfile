@@ -27,11 +27,10 @@ pipeline {
         stage('Install Selenium Requirements') {
             steps {
                 sh '''
-                    
-                    
-                    
-                    python3 -m pip install --upgrade pip
-                    python3 -m pip install -r requirements.txt
+                    python3 -m venv venv
+                    source venv/scripts/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
                 '''
             }
         }
@@ -40,7 +39,10 @@ pipeline {
             steps {
                 script {
                     dir('historicalfactshub') {
-                        sh 'python3 -m unittest discover -s automation'
+                        sh '''
+                            source ../venv/scripts/activate
+                            python -m unittest discover -s automation
+                        '''
                     }
                 }
             }
@@ -48,6 +50,7 @@ pipeline {
 
         stage('Publish Selenium Report') {
             steps {
+                sh 'source venv/scripts/activate'
                 publishHTML(target: [
                     reportDir: '.', 
                     reportFiles: 'report.html', 
