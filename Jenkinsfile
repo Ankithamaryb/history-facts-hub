@@ -16,7 +16,8 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 5000:5000 --name historical-facts-hub my-new-image'
+                sh 'docker run -d -p 5000:5000 --name historical-facts-hub-container my-new-image
+'
             }
         }
 
