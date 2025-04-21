@@ -21,14 +21,15 @@ pipeline {
         }
 
         stage('Install Selenium Requirements') {
-            steps {
-                sh '''
-                python3 -m venv venv
-                source venv/bin/activate
-                pip install -r requirements.txt
-                '''
-            }
-        }
+    steps {
+        sh '''
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r automation/requirements.txt
+        '''
+    }
+}
+
 
         stage('Run Selenium Tests') {
             steps {
