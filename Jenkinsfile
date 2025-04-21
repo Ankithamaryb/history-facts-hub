@@ -27,10 +27,9 @@ pipeline {
         stage('Install Selenium Requirements') {
             steps {
                 sh '''
-                    # Ensure pip is installed
-                    python3 -m ensurepip --upgrade
                     
-                    # Upgrade pip and install required packages
+                    
+                    
                     python3 -m pip install --upgrade pip
                     python3 -m pip install -r requirements.txt
                 '''
