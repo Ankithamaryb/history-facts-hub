@@ -21,11 +21,56 @@ try:
     driver.find_element(By.NAME, "password").send_keys("adminpass")
     driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
 
-    print("📍 Waiting for dashboard...")
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.LINK_TEXT, "Manage Quiz"))
-    )
+    # ===================== FACT MANAGEMENT =====================
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Manage Facts"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Add New Fact"))).click()
+    driver.find_element(By.NAME, "title").send_keys("Discovery of Electricity")
+    driver.find_element(By.NAME, "description").send_keys("Electricity was discovered in the 18th century by Benjamin Franklin.")
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Add Fact')]").click()
+    WebDriverWait(driver, 10).until(EC.url_contains("/admin/manage_facts"))
+    time.sleep(1)
+    if "Discovery of Electricity" in driver.page_source:
+        print("✅ Fact added successfully!")
+    else:
+        print("❌ Fact not found.")
 
+    driver.find_element(By.LINK_TEXT, "Edit").click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "title"))).clear()
+    driver.find_element(By.NAME, "title").send_keys("Invention of Electricity")
+    driver.find_element(By.NAME, "description").clear()
+    driver.find_element(By.NAME, "description").send_keys("Electricity was invented by Alessandro Volta.")
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Update Fact')]").click()
+    WebDriverWait(driver, 10).until(EC.url_contains("/admin/manage_facts"))
+    if "Invention of Electricity" in driver.page_source:
+        print("✅ Fact updated successfully!")
+    else:
+        print("❌ Fact update failed.")
+
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Delete')]").click()
+    WebDriverWait(driver, 10).until(EC.alert_is_present())
+    Alert(driver).accept()
+    WebDriverWait(driver, 10).until(EC.url_contains("/admin/manage_facts"))
+    if "Invention of Electricity" not in driver.page_source:
+        print("✅ Fact deleted successfully!")
+    else:
+        print("❌ Fact still exists.")
+
+    # ===================== INFORMATION MANAGEMENT =====================
+    driver.find_element(By.LINK_TEXT, "Manage Information").click()
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, "Add New Information"))).click()
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "title"))).send_keys("The Industrial Revolution")
+    driver.find_element(By.NAME, "details").send_keys(
+        "The Industrial Revolution began in the late 18th century and saw technological advances in factories."
+    )
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Add')]").click()
+    WebDriverWait(driver, 10).until(EC.url_contains("/admin/manage_information"))
+    if "The Industrial Revolution" in driver.page_source:
+        print("✅ Information added successfully!")
+    else:
+        print("❌ Information not found.")
+
+    # ===================== QUIZ MANAGEMENT =====================
+    
     print("📍 Navigating to 'Manage Quiz'...")
     driver.find_element(By.LINK_TEXT, "Manage Quiz").click()
 

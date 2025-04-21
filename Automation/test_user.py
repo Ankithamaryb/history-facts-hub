@@ -6,13 +6,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
-# Edge setup
+# Setup Edge driver
 options = Options()
 options.add_argument('--start-maximized')
-service = Service()
+service = Service()  # If needed, you can specify path here
 driver = webdriver.Edge(service=service, options=options)
 
 try:
+    # ----------------- LOGIN -----------------
     print("📍 Opening login page...")
     driver.get("http://127.0.0.1:5000/login")
 
@@ -21,11 +22,55 @@ try:
     driver.find_element(By.NAME, "password").send_keys("12345")
     driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
 
-    print("📍 Waiting for dashboard...")
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.LINK_TEXT, "Quiz"))
+        EC.presence_of_element_located((By.LINK_TEXT, "Facts"))
     )
 
+    # ----------------- ADD A FACT -----------------
+    print("📍 Navigating to Facts...")
+    driver.find_element(By.LINK_TEXT, "Facts").click()
+
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.LINK_TEXT, "Add a Fact"))
+    ).click()
+
+    print("📍 Adding a new fact...")
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.NAME, "title"))
+    ).send_keys("Invention of Internet")
+
+    driver.find_element(By.NAME, "description").send_keys("The internet was born in 1983 with the TCP/IP protocol.")
+
+    submit_btn = driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]")
+    driver.execute_script("arguments[0].scrollIntoView(true);", submit_btn)
+    submit_btn.click()
+
+    WebDriverWait(driver, 10).until(EC.url_contains("/facts"))
+    time.sleep(1)
+    if "Invention of Internet" in driver.page_source:
+        print("✅ Fact added successfully!")
+    else:
+        print("❌ Fact not found.")
+
+    # ----------------- SEARCH INFORMATION -----------------
+    print("📍 Navigating to Information page...")
+    driver.find_element(By.LINK_TEXT, "Information").click()
+
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.NAME, "query"))
+    ).send_keys("The Signing of the U.S. Constitution (1787)")
+
+    driver.find_element(By.XPATH, "//button[contains(text(), 'Search')]").click()
+
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "card-title"))
+    )
+    if "The Signing of the U.S. Constitution (1787)" in driver.page_source:
+        print("✅ Search successful!")
+    else:
+        print("❌ Search result not found.")
+
+    # ----------------- TAKE QUIZ -----------------
     print("📍 Opening quiz page...")
     driver.find_element(By.LINK_TEXT, "Quiz").click()
 
